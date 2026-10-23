@@ -72,8 +72,35 @@ while True:
 
     cv2.imshow("Room Face Identifier", frame)
 
-    if cv2.waitKey(1) & 0xFF == ord('q'):
+    key = cv2.waitKey(1) & 0xFF
+    if key == ord('q'):
         break
+    elif key == ord('r'):
+        # 1. Kiểm tra xem có khuôn mặt nào đang ở trước camera không
+        if faces is not None and len(faces) > 0:
+            print("\n" + "="*40)
+            new_name = input("Nhập tên người bạn mới (viết liền/không dấu): ").strip()
+            
+            if new_name:
+                # 2. Lưu ảnh vào thư mục 'friends' để lần sau mở máy không bị mất
+                import os
+                save_path = os.path.join("friends", f"{new_name}.jpg")
+                cv2.imwrite(save_path, frame)
+                print(f"-> Đã lưu ảnh vào: {save_path}")
+
+                # 3. Trích xuất vector đặc trưng và nạp ngay vào bộ nhớ hiện tại
+                # faces[0] là khuôn mặt đầu tiên AI nhìn thấy
+                aligned_face = recognizer.alignCrop(frame, faces[0])
+                new_feature = recognizer.feature(aligned_face)
+                
+                # Cập nhật trực tiếp vào từ điển bạn bè
+                friends_db[new_name] = new_feature
+                print(f"-> Đã đăng ký thành công bạn: {new_name}!")
+            else:
+                print("Tên không hợp lệ, đã hủy đăng ký.")
+            print("="*40 + "\n")
+        else:
+            print("Không tìm thấy khuôn mặt nào trước camera để đăng ký!")
 
 cap.release()
 cv2.destroyAllWindows()
